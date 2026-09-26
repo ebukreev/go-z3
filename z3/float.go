@@ -456,16 +456,16 @@ func (lit Float) AsBigFloat() (val *big.Float, isLiteral bool) {
 	out.SetPrec(uint(sbits))
 	switch {
 	case lit.isAppOf(C.Z3_OP_FPA_NUM):
-		var sign C.int
+		var neg bool
 		var sig string
 		var exp C.int64_t
 		lit.ctx.do(func() {
-			C.Z3_fpa_get_numeral_sign(lit.ctx.c, lit.c, &sign)
+			neg = z3ToBool(C.Z3_fpa_is_numeral_negative(lit.ctx.c, lit.c))
 			sig = C.GoString(C.Z3_fpa_get_numeral_significand_string(lit.ctx.c, lit.c))
 			C.Z3_fpa_get_numeral_exponent_int64(lit.ctx.c, lit.c, &exp, false)
 		})
 		out.Parse(sig, 10)
-		if sign > 0 {
+		if neg {
 			out.Neg(&out)
 		}
 		out.SetMantExp(&out, int(exp))
